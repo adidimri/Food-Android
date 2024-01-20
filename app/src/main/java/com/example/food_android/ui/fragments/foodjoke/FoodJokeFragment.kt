@@ -1,10 +1,11 @@
-package com.example.food_android
+package com.example.food_android.ui.fragments.foodjoke
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.example.food_android.R
 
 class FoodJokeFragment : Fragment() {
 
