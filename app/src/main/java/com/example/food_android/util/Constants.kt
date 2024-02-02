@@ -1,4 +1,4 @@
-package com.example.food_android
+package com.example.food_android.util
 
 class Constants {
 

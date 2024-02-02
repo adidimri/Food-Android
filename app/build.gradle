@@ -3,13 +3,14 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: "androidx.navigation.safeargs.kotlin"
 apply plugin: 'dagger.hilt.android.plugin'
+apply plugin: 'com.google.dagger.hilt.android'
 
 android {
     compileSdkVersion 34
 
     defaultConfig {
         applicationId "com.example.foody"
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 34
         versionCode 1
         versionName "1.0"
@@ -72,11 +73,16 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
 
     //Dagger - Hilt
-    implementation "com.google.dagger:hilt-android:2.31-alpha"
-    kapt "com.google.dagger:hilt-android-compiler:2.28-alpha"
+    implementation 'com.google.dagger:hilt-android:2.50'
+    kapt 'com.google.dagger:hilt-compiler:2.50'
 
-    implementation "androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03"
-    kapt "androidx.hilt:hilt-compiler:1.2.0-alpha01"
+    // For instrumentation tests
+    androidTestImplementation  'com.google.dagger:hilt-android-testing:2.50'
+    kaptAndroidTest 'com.google.dagger:hilt-compiler:2.50'
+
+    // For local unit tests
+    testImplementation 'com.google.dagger:hilt-android-testing:2.50'
+    kaptTest 'com.google.dagger:hilt-compiler:2.50'
 
     // Coroutines
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
@@ -97,4 +103,8 @@ dependencies {
     // Jsoup
     implementation 'org.jsoup:jsoup:1.13.1'
 
+}
+
+kapt {
+    correctErrorTypes true
 }

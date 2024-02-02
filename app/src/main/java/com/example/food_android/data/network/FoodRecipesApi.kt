@@ -1,4 +1,4 @@
-package com.example.food_android
+package com.example.food_android.data.network
 
 import com.example.food_android.models.FoodRecipe
 import retrofit2.Response
