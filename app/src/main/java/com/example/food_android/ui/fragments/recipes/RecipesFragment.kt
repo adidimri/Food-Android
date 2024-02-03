@@ -1,26 +1,38 @@
 package com.example.food_android.ui.fragments.recipes
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.food_android.MainViewModel
+import com.example.food_android.viewmodels.MainViewModel
 import com.example.food_android.adapter.RecipesAdapter
 import com.example.food_android.databinding.FragmentRecipesBinding
 import com.example.food_android.util.Constants.Companion.API_KEY
 import com.example.food_android.util.NetworkResult
+import com.example.food_android.util.observeOnce
+import com.example.food_android.viewmodels.RecipesViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class RecipesFragment : Fragment() {
 
     private lateinit var mainViewModel: MainViewModel
+    private lateinit var recipesViewModel: RecipesViewModel
     private val mAdapter by lazy { RecipesAdapter() }
     private lateinit var mView: FragmentRecipesBinding
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        mainViewModel = ViewModelProvider(requireActivity()).get(MainViewModel::class.java)
+        recipesViewModel = ViewModelProvider(requireActivity()).get(RecipesViewModel::class.java)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -28,14 +40,32 @@ class RecipesFragment : Fragment() {
     ): View? {
         // Inflate the layout for this fragment
         mView = FragmentRecipesBinding.inflate(layoutInflater)
-        mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
         setupRecyclerView()
-        requestApiData()
+        readDataBase()
         return mView.root
     }
 
+    private fun setupRecyclerView() {
+        mView.recyclerview.adapter = mAdapter
+        mView.recyclerview.layoutManager = LinearLayoutManager(requireContext())
+    }
+
+    private fun readDataBase() {
+        lifecycleScope.launch {
+            mainViewModel.readRecipes.observeOnce(viewLifecycleOwner) { database ->
+                if (database.isNotEmpty()) {
+                    Log.d("RecipesFragment", "readDataBase called!")
+                    mAdapter.setData(database[0].foodRecipe)
+                } else {
+                    requestApiData()
+                }
+            }
+        }
+    }
+
     private fun requestApiData() {
-        mainViewModel.getRecipes(applyQueries())
+        Log.d("RecipesFragment", "request ApiData called!")
+        mainViewModel.getRecipes(recipesViewModel.applyQueries())
         mainViewModel.recipesResponse.observe(viewLifecycleOwner) { response ->
             when (response) {
                 is NetworkResult.Success -> {
@@ -43,6 +73,7 @@ class RecipesFragment : Fragment() {
                 }
 
                 is NetworkResult.Error -> {
+                    loadDataFromCache()
                     Toast.makeText(requireContext(), response.message.toString(), Toast.LENGTH_SHORT).show()
                 }
 
@@ -53,22 +84,14 @@ class RecipesFragment : Fragment() {
         }
     }
 
-    private fun applyQueries(): HashMap<String, String> {
-        val queries: HashMap<String,String> = HashMap()
-
-        queries["number"] = "50"
-        queries["apiKey"] = API_KEY
-        queries["type"] = "snack"
-        queries["diet"] = "vegan"
-        queries["addRecipeInformation"] = "true"
-        queries["fillIngredients"] = "true"
-
-        return queries
-    }
-
-    private fun setupRecyclerView() {
-        mView.recyclerview.adapter = mAdapter
-        mView.recyclerview.layoutManager = LinearLayoutManager(requireContext())
+    private fun loadDataFromCache() {
+        lifecycleScope.launch {
+            mainViewModel.readRecipes.observe(viewLifecycleOwner) { database ->
+                if (database.isNotEmpty()) {
+                    mAdapter.setData(database[0].foodRecipe)
+                }
+            }
+        }
     }
 
 }

@@ -5,9 +5,11 @@ import javax.inject.Inject
 
 @ActivityRetainedScoped
 class Repository @Inject constructor(
-    remoteDataSource: RemoteDataSource
+    remoteDataSource: RemoteDataSource,
+    localDataSource: LocalDataSource
 ) {
 
     var remote = remoteDataSource
+    var local = localDataSource
 
 }
