@@ -9,11 +9,12 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.food_android.R
 import com.example.food_android.viewmodels.MainViewModel
 import com.example.food_android.adapter.RecipesAdapter
 import com.example.food_android.databinding.FragmentRecipesBinding
-import com.example.food_android.util.Constants.Companion.API_KEY
 import com.example.food_android.util.NetworkResult
 import com.example.food_android.util.observeOnce
 import com.example.food_android.viewmodels.RecipesViewModel
@@ -23,10 +24,12 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class RecipesFragment : Fragment() {
 
+    private var _binding: FragmentRecipesBinding? = null
+    private val binding get() = _binding!!
+
     private lateinit var mainViewModel: MainViewModel
     private lateinit var recipesViewModel: RecipesViewModel
     private val mAdapter by lazy { RecipesAdapter() }
-    private lateinit var mView: FragmentRecipesBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,15 +42,23 @@ class RecipesFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        mView = FragmentRecipesBinding.inflate(layoutInflater)
+        _binding = FragmentRecipesBinding.inflate(layoutInflater)
+        binding.lifecycleOwner = this
+        binding.mainViewModel = mainViewModel
+
         setupRecyclerView()
         readDataBase()
-        return mView.root
+
+        binding.recipesFab.setOnClickListener {
+            findNavController().navigate(R.id.action_recipesFragment_to_recipesBottomSheet)
+        }
+
+        return binding.root
     }
 
     private fun setupRecyclerView() {
-        mView.recyclerview.adapter = mAdapter
-        mView.recyclerview.layoutManager = LinearLayoutManager(requireContext())
+        binding.recyclerview.adapter = mAdapter
+        binding.recyclerview.layoutManager = LinearLayoutManager(requireContext())
     }
 
     private fun readDataBase() {
@@ -94,4 +105,8 @@ class RecipesFragment : Fragment() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
+    }
 }
